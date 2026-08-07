@@ -1,3 +1,5 @@
+import queue
+
 from django.shortcuts import render, get_object_or_404
 import json
 from django.http import JsonResponse, StreamingHttpResponse
@@ -53,18 +55,33 @@ def conversation_detail(request, conversation_id):
     }
     return render(request, "support/conversation_detail.html", context)
 
-
 @staff_member_required
 def conversation_stream(request, conversation_id):
     def event_stream(conversation_id):
         q = subscribe(conversation_id)
+
         try:
             while True:
-                event = q.get() # will wait for next event
-                yield f"data: {json.dumps(event)}\n\n"
+                try:
+                    event = q.get(timeout=15)
+                    yield f"data: {event}\n\n"
+
+                except queue.Empty:
+                    # Keep SSE connection alive
+                    yield ": keep-alive\n\n"
+
+        except GeneratorExit:
+            pass
+
         finally:
             unsubscribe(conversation_id, q)
-    response = StreamingHttpResponse(event_stream(conversation_id), content_type="text/event-stream")
+
+    response = StreamingHttpResponse(
+        event_stream(conversation_id),
+        content_type="text/event-stream"
+    )
+
     response["Cache-Control"] = "no-cache"
     response["X-Accel-Buffering"] = "no"
+
     return response
