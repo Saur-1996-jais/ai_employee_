@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 import time
 from django.contrib.admin.views.decorators import staff_member_required
 from .agents import run_support_agent
+from .event_queue import subscribe, unsubscribe, publish
 from .models import Conversation, Message
 from orders.models import Order
 
@@ -18,6 +19,8 @@ def chat(request, order_id):
         order = get_object_or_404(Order, id=order_id, user= request.user)
         conversation, created = Conversation.objects.get_or_create(user=request.user, order=order)
         Message.objects.create(conversation=conversation, role="user", content=user_message)
+        event = {"type": "user_message", "message": user_message, "name": request.user.first_name}
+        publish
         # send user message and conversation to LLM
 
         # store the LLM reply
@@ -35,7 +38,7 @@ def dashboard(request):
     }
     return render(request, "support/dashboard.html", context)
 
-
+@staff_member_required
 def conversation_detail(request, conversation_id):
     conversation = get_object_or_404(Conversation, id=conversation_id)
     messages = conversation.messages.order_by("-created_at")
@@ -49,3 +52,17 @@ def conversation_detail(request, conversation_id):
         "agentlogs": agentlogs
     }
     return render(request, "support/conversation_detail.html", context)
+
+
+@staff_member_required
+def conversation_stream(request, conversation_id):
+    def event_stream(conversation_id):
+        q = subscribe(conversation_id)
+        try:
+            while True:
+                event = q.get() # will wait for next event
+                yield f"data: {json.dumps(event)}\n\n"
+        finally:
+            unsubscribe(conversation_id, q)
+
+    return StreamingHttpResponse(event_stream(conversation_id), content_type="text/event-stream")

@@ -199,35 +199,34 @@
       color: #fff;
     }
 
-      #chat-box{
+    #chat-box{
       height: 500px;
       display: flex;
       flex-direction: column;
       opacity: 0;
-     }
+    }
 
-     #chat-box.visible{
-     opacity: 1;
-     }
+    #chat-box.visible{
+      opacity: 1;
+    }
 
-     .chat-messages{
-        flex: 1;
-        overflow-y: auto;
-     }
+    .chat-messages{
+      flex: 1;
+      overflow-y: auto;
+    }
 
-     .agent-message{
-       background: #f3f4f6;
-       border-radius: 0 10px 10px 10px;
-       white-space: pre-line;
-     }
+    .agent-message{
+      background: #f3f4f6;
+      border-radius: 0 10px 10px 10px;
+      white-space: pre-line;
+    }
 
-
-     .customer-message{
-       background-color: #1a1a2e;
-       color: #fff;
-       border-radius: auto;
-       margin-left: auto;
-     }
+    .customer-message{
+      background-color: #1a1a2e;
+      color: #fff;
+      border-radius: 10px 0 10px 10px;
+      margin-left: auto;
+    }
   </style>
 </head>
 <body>
@@ -262,7 +261,6 @@
           </span>
         </div>
 
-          `
         <div class="detail-row">
           <span class="detail-label">Amount</span>
           <span class="detail-value">₹{{ order.amount }}</span>
@@ -313,55 +311,59 @@
     </div>
 
     <div class="col-md-4">
-        <!-- Help Card - visible by default-->
-        <div class="help-card" id="help-card">
-            <div style="font-size:32px;">💬</div>
-                <h6>Need help with this order?</h6>
-                <p>Our AI support agent can help you with delivery issues, refunds, or any other concerns.</p>
-                <button onclick="showChat()" class="btn-help">Get Help</button>
-        </div>
-        <!--- Chat Box - hidden by default --->
-        <div id="chat-box" class="card">
-            <div class="card-header d-flex align-items-center gap-2">
-                <div style="width: 8px; height: 8px; border-radius: 50%; background-color: green;"></div>
-                <span class="fw-semibold" style="font-size: 13px;">Support Agent</span>
-            </div>
-            <!--- Chat Area --->
-            <div id="chat-messages" class="chat-messages p-3 d-flex flex-column gap-2">
-                {% if conversation %}
-                <!----print the previous messages ---->
-                 {% for msg in previous_messages %}
-                  {% if msg.role == 'user' %}
-                    <div class="customer-message p-2 px-3" style="font-size: 13px; max-width: 85%;">
-                        {{ msg.content }}
-                    </div>
-                  {% else %}
-                     <div class="agent-message p-2 px-3" style="font-size: 13px; max-width: 85%;">
-                        {{ msg.content }}
-                     </div>
-                  {% endif %}
+      <!-- Help card - visible by default -->
+      <div class="help-card" id="help-card">
+        <div style="font-size:32px;">💬</div>
+        <h6>Need help with this order?</h6>
+        <p>Our AI support agent can help you with delivery issues, refunds, or any other concerns.</p>
+        <button onclick="showChat()" class="btn-help">Get Help</button>
+      </div>
 
-                 {% endfor %}
+      <!-- Chat box - hidden by default -->
+       <div id="chat-box" class="card">
+        <!-- Header -->
+         <div class="card-header d-flex align-items-center gap-2">
+          <div style="width: 8px;height: 8px; border-radius: 50%; background-color: green;"></div>
+          <span class="fw-semibold" style="font-size: 13px;">Support Agent</span>
+         </div>
 
-                {% else %}
-                <div class="agent-message p-2 px-3" style="font-size: 13px; max-width:80%">
-                    Hi {{ request.user.first_name }}, I' m Maya, How can I help you with your order today?
+         <!-- Chat area -->
+          <div id="chat-messages" class="chat-messages p-3 d-flex flex-column gap-2">
+            {% if conversation %}
+            <!-- print the previous messages -->
+             {% for msg in previous_messages %}
+              {% if msg.role == 'user' %}
+                <div class="customer-message p-2 px-3" style="font-size: 13px;max-width: 85%;">
+                  {{ msg.content }}
                 </div>
-                {% endif %}
+              {% else %}
+                <div class="agent-message p-2 px-3" style="font-size: 13px;max-width: 85%;">
+                  {{ msg.content }}
+                </div>
+              {% endif %}
+             {% endfor %}
+            {% else %}
+            <div class="agent-message p-2 px-3" style="font-size: 13px; max-width: 85%;">
+              Hi {{ request.user.first_name }}, I'm Maya, How can I help you with your order today?
             </div>
-            <!--- Chat footer --->
-            <div class="card-footer d-flex">
-                <input type="text" id="chat-input" class="form-control form-control-sm" placeholder="Type your message...">
-                <button class="btn btn-dark btn-sm px-3" onclick="sendMessage()">Send</button>
-            </div>
-        </div>
+            {% endif %}
+          </div>
+
+          <!-- Chat footer -->
+           <div class="card-footer d-flex">
+            <input type="text" id="chat-input" class="form-control form-control-sm" placeholder="Type your message...">
+            <button class="btn btn-dark btn-sm px-3" onclick="sendMessage()">Send</button>
+           </div>
+       </div>
     </div>
 
   </div>
 
 </div>
+
 <script>
-function showTyping(){
+
+  function showTyping(){
     const messages = document.getElementById("chat-messages");
     messages.insertAdjacentHTML("beforeend", `
     <div id="typing-indicator" class="agent-message p-2" style="font-size:13px;max-width:85%;">

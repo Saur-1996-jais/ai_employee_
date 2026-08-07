@@ -22,7 +22,7 @@
             <tr>
                 <td class="px-4">{{ conv.user.first_name }} {{ conv.user.last_name }}</td>
                 <td>Order #{{ conv.order.id }}</td>
-                <td>{{conv.order.product_name}}</td>
+                <td>{{ conv.order.product_name }}</td>
                 <td>
                     {% if conv.manager_involved %}
                     <span class="badge bg-warning text-dark">Yes</span>
