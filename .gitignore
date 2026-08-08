@@ -150,6 +150,8 @@ venv.bak/
 # mkdocs documentation
 /site
 
+
+chroma_db/
 # mypy
 .mypy_cache/
 .dmypy.json
