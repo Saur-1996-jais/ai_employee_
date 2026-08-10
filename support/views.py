@@ -5,6 +5,7 @@ import time
 from django.contrib.admin.views.decorators import staff_member_required
 from .agents import run_support_agent
 from .event_queue import subscribe, unsubscribe, publish
+from .langchain_agents import run_support_agent_langchain
 from .models import Conversation, Message
 from orders.models import Order
 
@@ -24,7 +25,8 @@ def chat(request, order_id):
         # send user message and conversation to LLM
 
         # store the LLM reply
-        reply = run_support_agent(user_message, conversation.id, order.id, request.user.id)
+        # reply = run_support_agent(user_message, conversation.id, order.id, request.user.id)
+        reply = run_support_agent_langchain(user_message, conversation.id, order.id, request.user.id)
         Message.objects.create(conversation=conversation, role="assistant", content=reply)
         time.sleep(1)
         return JsonResponse({"reply": reply})
